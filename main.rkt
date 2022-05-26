@@ -40,13 +40,13 @@
     (lambda (expr operand) (list operand (split-by expr operand)))
 )
 
-(define parse_binding_list (lambda (binding_list) (
+(define parse_binding_list (lambda (binding_list)
     
-    (if (null? binding_list) '()
+    (if (null? binding_list) ()
     (if (member '-- binding_list)
         ((let assignment (split-by binding_list '--) ) (let var (split-by assignment ':=)))
             (-- (:= (car assignment) (cdr assignment)) ) )
-        (cons parse_binding_list (car binding_list) (cdr binding_list))))
+        (cons parse_binding_list (car binding_list) (cdr binding_list)))
 
 )) 
 
