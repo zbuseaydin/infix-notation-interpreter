@@ -54,7 +54,7 @@
 
     (cond (member '+ expr) (parse_expr (split-and-prefix expr '+))
         (member '* expr) (parse_expr (split-and-prefix expr '*))
-        (member '@ expr) '()
+        (member '@ expr) (list)
         (number? expr) (expr) 
         (atom? expr) (expr) 
 
