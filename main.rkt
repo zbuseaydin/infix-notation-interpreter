@@ -52,13 +52,12 @@
 
 (define parse_expr (lambda (expr) 
 
-    (cond (member '+ expr) (parse_expr (split-and-prefix expr '+))
+    (cond (member '+ expr) (list 2)
         (member '* expr) (parse_expr (split-and-prefix expr '*))
         (member '@ expr) (list)
         (number? expr) (expr) 
-        (atom? expr) (expr) 
 
-        (else expr)
+        (else (list 1))
     )
 
 
