@@ -44,8 +44,8 @@
     
     (if (null? binding_list) '()
     (if (member '-- binding_list)
-        ((let assignment (split-by binding_list '--)) 
-         (let var (split-by assignment ':=))
+        (let ((assignment (split-by binding_list '--)) 
+         (var (split-by assignment ':=)))
          (-- (:= (car var) (cdr var))))
         (cons parse_binding_list (car binding_list) (cdr binding_list)))
 ))) 
