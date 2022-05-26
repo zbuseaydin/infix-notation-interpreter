@@ -17,7 +17,6 @@
 
 ; 20 points
 
-
 (define split_at_delim (lambda (delim args) 
     (if (null? args) '()
         (if (equal? (car args) delim)
@@ -37,30 +36,51 @@
 ; 30 points
 
 (define split-and-prefix 
-    (lambda (expr operand) (list operand (split-by expr operand)))
+    (lambda (expr operand) (cons operand (split-by expr operand)))
 )
 
 (define parse_binding_list (lambda (binding_list)
     
-    (if (null? binding_list) '()
-    (if (member '-- binding_list)
-        (let* ((assignment (split-by binding_list '--)) 
-         (var (split-by assignment ':=)))
-         (-- (:= (car var) (cdr var))))
-        (cons parse_binding_list (car binding_list) (cdr binding_list)))
-))) 
+    (let* ((splitted (split-by binding_list '--)))
+        (map parse_assignment splitted)
+    )
+    
+))
+
+(define parse_assignment (lambda (assignment)
+    (list ':= (cadr (car assignment)) 
+        (if (number? (caddr assignment)) 
+            (caddr assignment) 
+            (cadr(caddr assignment))
+        )
+    )
+))
+
+
+(define parse_1binding_list (lambda (binding_list)
+    
+    (-- (:= (cadr (car binding_list)) (caddr binding_list)))
+    
+))
+
+(define (atom? x)
+  (and (not (null? x))
+       (not (pair? x))))
 
 (define parse_expr (lambda (expr) 
+    (if (null? expr) '() 
 
-    (cond (member '+ expr) (list 2)
-        (member '* expr) (parse_expr (split-and-prefix expr '*))
-        (member '@ expr) (list)
-        (number? expr) (expr) 
+    (cond ((member '+ expr) (list '+  parse_expr))
+        ((member '* expr) (parse_expr (split-and-prefix expr '*)))
+        ((member '@ expr) (list))
+        ((number? (car expr)) (car expr)) 
+        ((list? (car expr) ) (parse_expr (car expr)))
+        ((atom? (car expr)) (car expr))
 
         (else (list 1))
     )
 
-
+    )
 
 ))
 ; 20 points
