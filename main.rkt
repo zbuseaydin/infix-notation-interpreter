@@ -37,7 +37,7 @@
 ; 30 points
 
 (define split-and-prefix 
-    (expr operand) (list operand (split-by expr operand)) 
+    (lambda (expr operand) (list operand (split-by expr operand)))
 )
 
 (define parse_binding_list (lambda (binding_list) (
