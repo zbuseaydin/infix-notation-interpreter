@@ -42,46 +42,88 @@
 (define parse_binding_list (lambda (binding_list)
     
     (let* ((splitted (split-by binding_list '--)))
-        (map parse_assignment splitted)
+        (map parse_assignment (reverse (cdr (reverse splitted))))
     )
     
 ))
 
 (define parse_assignment (lambda (assignment)
-    (list ':= (cadr (car assignment)) 
+    (:= (cadr (car assignment)) 
         (if (number? (caddr assignment)) 
             (caddr assignment) 
             (cadr(caddr assignment))
-        )
+        ))
     )
-))
+)
 
-
-(define parse_1binding_list (lambda (binding_list)
-    
-    (-- (:= (cadr (car binding_list)) (caddr binding_list)))
-    
-))
 
 (define (atom? x)
   (and (not (null? x))
        (not (pair? x))))
 
+ 
+
+(define member? (lambda (x list)
+ (if (null? list) #f
+    (if (eq? x (car list)) #t
+        (member? x (cdr list))))))
+
+
 (define parse_expr (lambda (expr) 
+    
     (if (null? expr) '() 
-
-    (cond ((member '+ expr) (list '+  parse_expr))
-        ((member '* expr) (parse_expr (split-and-prefix expr '*)))
-        ((member '@ expr) (list))
-        ((number? (car expr)) (car expr)) 
-        ((list? (car expr) ) (parse_expr (car expr)))
-        ((atom? (car expr)) (car expr))
-
-        (else (list 1))
+    (if (list? expr)
+        (let ((splitted_multiply (split-by expr '*))
+            (splitted_addition (split-by expr '+)))
+            (if (list? (car expr) ) (parse_expr (car expr))
+            (if (member? '* expr) (list '* (parse_expr (car splitted_multiply)) (parse_expr (cdr splitted_multiply)))
+                (if (member? '+ expr) (list '+ (parse_expr (car splitted_addition)) (parse_expr (cdr splitted_addition)))
+                    (if (member? '@ expr) 
+                    (let ((splitted_assign (split-by expr '@)))
+                        (@ (-- (parse_binding_list (caar splitted_assign))) (parse_expr (cadr splitted_assign))))
+                        (if (number? (car expr)) (list (car expr)) 
+                            (if (atom? (car expr)) (list (car expr))
+                            '() 
+                            )
+                        )
+                    )
+                )
+            )
+        ))
+        (if (number? expr) (list expr) 
+                            (if (atom? expr) (list expr)
+                            '() 
+                            ))
     )
-
     )
-
 ))
+
+;(define parse_expr (lambda (expr) 
+;    
+;    (if (null? expr) '() 
+;    (if (list? expr)
+;        (if (list? (car expr) ) (parse_expr (car expr))
+;            (if (member? '* expr) (list '* (parse_expr (car expr)) (parse_expr (cddr expr)))
+;                (if (member? '+ expr) (list '+ (parse_expr (car expr)) (parse_expr (cddr expr)))
+;                    (if (member? '@ expr) 
+;                    (let ((splitted_assign (split-by expr '@)))
+;                        (@ (-- (parse_binding_list (caar splitted_assign))) (parse_expr (cadr splitted_assign))))
+;                        (if (number? (car expr)) (cons '() (car expr)) 
+;                            (if (atom? (car expr)) (cons '() (car expr))
+;                            '() 
+;                            )
+;                        )
+;                    )
+;                )
+;            )
+;        )
+;        (if (number? expr) (list expr) 
+;                            (if (atom? expr) (list expr)
+;                            '() 
+;                            ))
+;    )
+;    )
+;))
+
 ; 20 points
 (define eval_expr (lambda (expr) 0))
