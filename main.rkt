@@ -9,6 +9,8 @@
 ; 10 points
 (define -- (lambda args (list 'let args)))
 
+(define modified-- (lambda lst (cons 'let lst)))
+
 
 ; 10 points
 (define @ (lambda (parsed_binding expr)
@@ -17,27 +19,27 @@
 
 ; 20 points
 
-(define split_at_delim (lambda (delim args) 
-    (if (null? args) '()
-        (if (equal? (car args) delim)
-            (list (split_at_delim delim (cdr args)))
-            (cons (car args) (split_at_delim delim (cdr args)))
-        )
-    )
+(define m_split_at_delim (lambda (delim args) 
+    (foldr (lambda (e n)
+           (if (eqv? e delim)
+               (cons '() n)
+               (cons (cons e (car n)) (cdr n))))
+         (list '()) args)
 ))
 
-(define (split-by args delim)
-  (foldr (lambda (element next)
-           (if (eqv? element delim)
-               (cons '() next)
-               (cons (cons element (car next)) (cdr next))))
-         (list '()) args))
+
+(define split_at_delim (lambda (delim args)
+    (if (member? delim args) (let ((index (index-of args delim)))
+        (cons (take args index)
+            (split_at_delim delim (drop args (+ index 1)) ))
+    )(list args))            
+))
 
 ; 30 points
 
 (define parse_binding_list (lambda (binding_list)
     
-    (let* ((splitted (split-by binding_list '--)))
+    (let* ((splitted (split_at_delim '-- binding_list)))
         (map parse_assignment (reverse (cdr (reverse splitted))))
     )
     
@@ -52,7 +54,6 @@
     )
 )
 
-
 (define (atom? x)
   (and (not (null? x))
        (not (pair? x))))
@@ -65,19 +66,17 @@
         (member? x (cdr list))))))
 
 
-
 (define parse_expr (lambda (expr) 
     
     (if (null? expr) '() 
     (if (list? expr)
         
-            (if (member? '+ expr) (cons '+ (map parse_expr (split-by expr '+)))
-                (if (member? '* expr) (cons '* (map parse_expr (split-by expr '*)))
-                    (if (list? (car expr) ) (parse_expr (car expr))
-
+            (if (member? '+ expr) (cons '+ (map parse_expr (split_at_delim '+ expr)))
+                (if (member? '* expr) (cons '* (map parse_expr (split_at_delim '* expr)))
                     (if (member? '@ expr) 
-                    (let ((splitted_assign (split-by expr '@)))
-                        (@ (-- (parse_binding_list (caar splitted_assign))) (list (parse_expr (cadr splitted_assign)))))
+                    (let ((splitted_assign (split_at_delim '@ expr)))
+                        (@ (modified-- (parse_binding_list (caar splitted_assign))) (list (parse_expr (cadr splitted_assign)))))
+                         (if (list? (car expr) ) (parse_expr (car expr))
                         (if (number? (car expr)) (car expr) 
                             (if (atom? (car expr)) (car expr)
                             '() 
