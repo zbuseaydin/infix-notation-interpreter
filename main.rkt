@@ -1,3 +1,8 @@
+; zeynep buse aydin
+; 2019400066
+; compiling: yes
+; complete: yes
+
 #lang racket
 
 (provide (all-defined-out))
