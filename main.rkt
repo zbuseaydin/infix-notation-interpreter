@@ -22,20 +22,18 @@
 
 (define modified-- (lambda lst (cons 'let lst)))
 
-
+; splits the binding list by -- and parses each of the bindings
 (define parse_binding_list (lambda (binding_list)
-    
     (let* ((splitted (split_at_delim '-- binding_list)))
         (map parse_assignment (reverse (cdr (reverse splitted))))
     )
-    
 ))
 
 (define parse_assignment (lambda (assignment)
-    (:= (cadr (car assignment)) 
-        (if (number? (caddr assignment)) 
-            (caddr assignment) 
-            (cadr(caddr assignment))
+    (:= (cadr (car assignment))  ; get the second element from the assignment 
+        (if (number? (caddr assignment))  ; if the last element of the assignment is a number
+            (caddr assignment)            ; return the number
+            (cadr(caddr assignment))      ; else it is 'variable, so return the variable
         ))
     )
 )
@@ -44,7 +42,7 @@
   (and (not (null? x))
        (not (pair? x))))
 
- 
+; checks if x is a member of list
 (define member? (lambda (x list)
  (if (null? list) #f
     (if (eq? x (car list)) #t
@@ -52,27 +50,33 @@
 
 
 (define parse_expr (lambda (expr) 
-    
-    (if (null? expr) '() 
-        (if (list? expr)
-            (if (member? '+ expr) (cons '+ (map parse_expr (split_at_delim '+ expr)))
-                (if (member? '* expr) (cons '* (map parse_expr (split_at_delim '* expr)))
+    (if (null? expr) '()  ; check if expr is null
+        (if (list? expr)  ; else if expr is a list then do the corresponding parsing according to the expr type
+
+            ; if expr+expr, return (+ parsed_expr1 parsed_expr2 ...)
+            (if (member? '+ expr) (cons '+ (map parse_expr (split_at_delim '+ expr))) 
+
+                ; else if expr*expr, return (+ parsed_expr1 parsed_expr2 ...)
+                (if (member? '* expr) (cons '* (map parse_expr (split_at_delim '* expr))) 
+
+                    ; else if (binding list)@(expr) then parse the binding list, apply modified--, parse expr and apply @ func to them
                     (if (member? '@ expr) (let ((splitted_assign (split_at_delim '@ expr)))
                             (@ (modified-- (parse_binding_list (caar splitted_assign))) (list (parse_expr (cadr splitted_assign)))))
+
+                        ; else if (expr) return expr
                         (if (list? (car expr) ) (parse_expr (car expr))
+
+                            ; else if number or variable return number or variable
                             (if (number? (car expr)) (car expr) 
                                 (if (atom? (car expr)) (car expr)
                                 '() 
-                            ))))))
-            (if (number? expr) (list expr) 
-                (if (atom? expr) (list expr)
-                    '() 
-                ))
+                            ))
+                        ))))
+          
+        '() ; else return empty list 
         ))
 ))
 
         
-; 20 points
 (define eval_expr (lambda (expr) 
-    (eval (parse_expr expr))
-))
+    (eval (parse_expr expr))))
